@@ -12,6 +12,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Microsoft.Phone.Controls;
 using Microsoft.Phone.Shell;
+using Tophat;
 
 namespace Assassin
 {
@@ -63,6 +64,24 @@ namespace Assassin
         // This code will not execute when the application is reactivated
         private void Application_Launching(object sender, LaunchingEventArgs e)
         {
+            GameType[] types = new GameType[2];
+            types[0] = new GameType(typeof(AssassinGame), "Assassin", 1);
+            types[1] = new GameType(typeof(AssassinGame), "QRzar", 2);
+
+            Networking.Init("http://arboroia.com", 443, types);
+
+
+            string data = StorageManager.LoadData("User.txt");
+            if (data != "")
+                Networking.SetLocalUser(data);
+            else
+                StorageManager.CreateDirectory("User.txt");
+
+            data = StorageManager.LoadData("Apitoken.txt");
+            if (data != "")
+                Networking.Apitoken = data;
+            else
+                StorageManager.CreateDirectory("Apitoken.txt");
         }
 
         // Code to execute when the application is activated (brought to foreground)

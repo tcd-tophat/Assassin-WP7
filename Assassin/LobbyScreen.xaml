@@ -1,0 +1,153 @@
+﻿<phone:PhoneApplicationPage 
+    x:Class="Assassin.LobbyScreen"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:phone="clr-namespace:Microsoft.Phone.Controls;assembly=Microsoft.Phone"
+    xmlns:shell="clr-namespace:Microsoft.Phone.Shell;assembly=Microsoft.Phone"
+    xmlns:controls="clr-namespace:Microsoft.Phone.Controls;assembly=Microsoft.Phone.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+    xmlns:l="clr-namespace:NavigationListControl;assembly=NavigationListControl"
+    xmlns:toolkit="clr-namespace:Microsoft.Phone.Controls;assembly=Microsoft.Phone.Controls.Toolkit"
+    mc:Ignorable="d" d:DesignWidth="480" d:DesignHeight="696"
+    FontFamily="{StaticResource PhoneFontFamilyNormal}"
+    FontSize="{StaticResource PhoneFontSizeNormal}"
+    Foreground="{StaticResource PhoneForegroundBrush}"
+    SupportedOrientations="Portrait"  Orientation="Portrait"
+    shell:SystemTray.IsVisible="True" Loaded="PhoneApplicationPage_Loaded">
+
+    <!--LayoutRoot is the root grid where all page content is placed-->
+    <Grid x:Name="LayoutRoot" Background="Transparent">
+        <!--Pivot Control-->
+        <controls:Pivot Title="ASSASSIN">
+            <!--Pivot item one-->
+            <controls:PivotItem Header="Lobby">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="319" />
+                        <ColumnDefinition Width="137" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="72" />
+                        <RowDefinition Height="35" />
+                        <RowDefinition Height="10*" />
+                    </Grid.RowDefinitions>
+                    <TextBox x:Name ="txt_FilterGames" Text="Search" Foreground="Gray" Height="72" Grid.ColumnSpan="2" /> 
+                    <TextBlock x:Name="lbl_LobbyGames" Text="Games currently running:" Grid.Row="1" Foreground="Cyan" Grid.ColumnSpan="2" />
+                    <ScrollViewer Grid.Row="2" Grid.ColumnSpan="2">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="319" />
+                                <ColumnDefinition Width="137" />
+                            </Grid.ColumnDefinitions>
+                            <ListBox x:Name="lst_LobbyGames" ScrollViewer.VerticalScrollBarVisibility="Disabled" Tap="GameList_Click"  FontSize="28" ItemsSource="{Binding Games}" >
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Width="310">
+                                            <toolkit:ContextMenuService.ContextMenu>
+                                                <toolkit:ContextMenu x:Name="contextMenu_Game">
+                                                    <toolkit:MenuItem Header="Player List" Click="ShowPlayerList" />
+                                                </toolkit:ContextMenu>
+                                            </toolkit:ContextMenuService.ContextMenu>
+                                            <TextBlock Padding="10" Text="{Binding Path=name}"></TextBlock>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                            <TextBlock Margin = "0 10 0 0" x:Name="lbl_LobbyGameStatus" Text="" LineHeight="58" Foreground="Violet" Grid.Column="1" FontSize="28" />
+                        </Grid>
+                    </ScrollViewer>
+                </Grid>
+            </controls:PivotItem>
+
+
+            <controls:PivotItem Header="Create">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="72" />
+                        <RowDefinition Height="29" />
+                        <RowDefinition Height="72" />
+                        <RowDefinition Height="43" />
+                        <RowDefinition Height="317" />
+                        <RowDefinition Height="2*" />
+                    </Grid.RowDefinitions>
+                    <TextBox x:Name ="txt_Name" Text="Name" Foreground="Gray" Height="72"  GotFocus="OnGotFocusText" LostFocus="OnLostFocusText" />
+                    <TextBlock x:Name="lbl_NumPlayers" Text="Max Players:" Foreground="Cyan" Grid.Row="1"/>
+                    <TextBox x:Name ="txt_NumPlayers" Grid.Row="2" Text="100" InputScope="Number" KeyUp="txt_NumPlayers_KeyUp"/>
+                    <TextBlock x:Name="lbl_GameType" Text="Game Type:" Foreground="Cyan" Grid.Row="3" VerticalAlignment="Center" />
+                    <ListBox x:Name="lst_Types" Grid.Row="4"/>
+                </Grid>
+            </controls:PivotItem>
+            
+            <controls:PivotItem Header="My Games">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="72" />
+                        <RowDefinition Height="35" />
+                        <RowDefinition Height="10*" />
+                    </Grid.RowDefinitions>
+                    <TextBox x:Name ="txt_FilterMyGames" Text="Search" Foreground="Gray" Height="72" Grid.ColumnSpan="2" />
+                    <TextBlock x:Name="lbl_MyGames" Text="Games I started:" Grid.Row="1" Foreground="Cyan" Grid.ColumnSpan="2" />
+
+                    <ScrollViewer Grid.Row="2">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="319" />
+                                <ColumnDefinition Width="137" />
+                            </Grid.ColumnDefinitions>
+                            
+
+                            <ListBox x:Name="lst_MyGames" ScrollViewer.VerticalScrollBarVisibility="Disabled" Tap="MyGameList_Click" FontSize="28" >
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Width="310">
+                                            <toolkit:ContextMenuService.ContextMenu>
+                                                <toolkit:ContextMenu x:Name="contextMenu_MyGame">
+                                                    <toolkit:MenuItem Header="Player List" Click="ShowPlayerList" />
+                                                    <toolkit:MenuItem Header="Delete" Click="DeleteGame"/>
+                                                </toolkit:ContextMenu>
+                                            </toolkit:ContextMenuService.ContextMenu>
+                                            <TextBlock Padding="10" Text="{Binding Path=name}"></TextBlock>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                            <TextBlock Margin="0 10 0 0" x:Name="lbl_MyGameStatus" LineHeight="59" Text="" Foreground="Violet" Grid.Column="2" FontSize="28"/>
+
+                        </Grid>
+                    </ScrollViewer>
+                </Grid>
+            </controls:PivotItem>
+
+            <controls:PivotItem Header="Profile">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="75" />
+                        <RowDefinition Height="75" />
+                        <RowDefinition Height="75" />
+                        <RowDefinition Height="75" />
+                        <RowDefinition Height="229" />
+                    </Grid.RowDefinitions>
+
+
+                    <Border Background="Green" Padding="0 30 0 0" Grid.Row="3">
+                        <TextBlock Height="90">Hello</TextBlock>
+                    </Border>
+                    <TextBlock x:Name="lbl_Name" Text="Name:" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="lbl_Email" Text="Email:" Grid.Row="1" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="lbl_Created" Text="Created:" Grid.Row="2" VerticalAlignment="Center"/>
+                    <Image x:Name="img_Photo" Grid.Row="3" VerticalAlignment="Center"/>
+                </Grid>
+            </controls:PivotItem>
+        </controls:Pivot>
+
+    </Grid>
+    
+    <phone:PhoneApplicationPage.ApplicationBar>
+        <shell:ApplicationBar IsVisible="True" IsMenuEnabled="True">
+            <shell:ApplicationBarIconButton x:Name="btn_Create" IconUri="/Images/appbar.add.rest.png" Text="Create" Click="CreateGame"/>
+            <shell:ApplicationBarIconButton x:Name="btn_Refresh" IconUri="/Images/appbar.refresh.rest.png" Text="Refresh" Click="Refresh"/>
+        </shell:ApplicationBar>
+    </phone:PhoneApplicationPage.ApplicationBar>
+
+</phone:PhoneApplicationPage>
