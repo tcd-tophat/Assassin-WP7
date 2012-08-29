@@ -35,8 +35,6 @@ namespace Assassin
             {
                 if (Networking.Apitoken != "")
                 {
-                    StorageManager.SaveData("User.txt", Newtonsoft.Json.JsonConvert.SerializeObject(Networking.LocalUser));
-                    StorageManager.SaveData("Apitoken.txt", Networking.Apitoken);
                     NavigationService.Navigate(new Uri("/LobbyScreen.xaml", UriKind.Relative));
                 }
             }

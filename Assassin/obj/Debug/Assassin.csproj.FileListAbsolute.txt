@@ -18,7 +18,6 @@ C:\Users\Eoin\WP7-Assassin\Assassin\Bin\Debug\Microsoft.Phone.Controls.xml
 C:\Users\Eoin\WP7-Assassin\Assassin\obj\Debug\LobbyScreen.g.i.cs
 C:\Users\Eoin\WP7-Assassin\Assassin\Bin\Debug\Images\appbar.check.rest.png
 C:\Users\Eoin\WP7-Assassin\Assassin\Bin\Debug\Images\appbar.refresh.rest.png
-C:\Users\Eoin\WP7-Assassin\Assassin\Bin\Debug\NavigationListControl.dll
 C:\Users\Eoin\WP7-Assassin\Assassin\Bin\Debug\NavigationListControl.pdb
 C:\Users\Eoin\WP7-Assassin\Assassin\Bin\Debug\Images\appbar.add.rest.png
 C:\Users\Eoin\WP7-Assassin\Assassin\Bin\Debug\Microsoft.Phone.Controls.Toolkit.dll

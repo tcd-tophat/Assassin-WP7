@@ -13,6 +13,7 @@ using System.Collections.ObjectModel;
 using Microsoft.Phone.Controls;
 using System.Text;
 using Tophat;
+using Microsoft.Phone.Shell;
 
 namespace Assassin
 {
@@ -27,63 +28,57 @@ namespace Assassin
 
         private void PhoneApplicationPage_Loaded(object sender, RoutedEventArgs e)
         {
-            Networking.GetUserDetails(OnGetUserDetails);
-            var Data_lst_Types = new List<string>();
-
-            for (int i = 0; i < Networking.GameTypes.Length; i++)
-            {
-                Data_lst_Types.Add(Networking.GameTypes[i].name);
-            }
+            Refresh(null, null);
+            var Data_lst_Types = new List<string> { "Standard" };
             lst_Types.ItemsSource = Data_lst_Types;
         }
 
         private void OnGetGames(object sender, DownloadStringCompletedEventArgs e)
         {
-            try
-            {
-                //Nudge the response to check for an exception
-                string x = e.Result;
+            if (!Networking.FailedRequest)
                 BindGameList();
-            }
-            catch (WebException)
+            else
             {
-                //TODO: Start project for mango
                 if (Networking.isStopped)
-                    MessageBox.Show("Couldn't connect to the server.");
-                //ProgressIndicator p = new ProgressIndicator{ Text="Couldn't connect to the server." }
-                //Microsoft.Shell.SystemTray.SetProgressIndicator(this, p);
+                {
+                    ProgressIndicator p = new ProgressIndicator { Text = "Couldn't connect to the server. Retrying..." };
+                    SystemTray.SetProgressIndicator(this, p);
+                }
                 else
-                    MessageBox.Show("Failed to connect. Retrying...");
-                //ProgressIndicator p = new ProgressIndicator{ Text="Couldn't connect to the server." }
-                //Microsoft.Shell.SystemTray.SetProgressIndicator(this, p);
+                {
+                    ProgressIndicator p = new ProgressIndicator { Text = "Couldn't connect to the server." };
+                    SystemTray.SetProgressIndicator(this, p);
+                }
             }
         }
 
         private void OnGetUserDetails(object sender, DownloadStringCompletedEventArgs e)
         {
-            try
-            {
-                //Nudge the response to check for an exception
-                string x = e.Result;
-                Networking.GetGames(OnGetGames);
-            }
-            catch (WebException)
+            if (!Networking.FailedRequest)
+                Networking.GetGames<Game>(OnGetGames);
+            else
             {
                 //TODO: Start project for mango
                 if (Networking.isStopped)
-                    MessageBox.Show("Couldn't connect to the server.");
-                    //ProgressIndicator p = new ProgressIndicator{ Text="Couldn't connect to the server." }
-                    //Microsoft.Shell.SystemTray.SetProgressIndicator(this, p);
+                {
+                    ProgressIndicator p = new ProgressIndicator { Text = "Couldn't connect to the server." };
+                    SystemTray.SetProgressIndicator(this, p);
+                }
                 else
-                    MessageBox.Show("Failed to connect. Retrying...");
-                    //ProgressIndicator p = new ProgressIndicator{ Text="Couldn't connect to the server." }
-                    //Microsoft.Shell.SystemTray.SetProgressIndicator(this, p);
+                {
+                    ProgressIndicator p = new ProgressIndicator { Text = "Failed to connect. Retrying..." };
+                    SystemTray.SetProgressIndicator(this, p);
+                }
             }
         }
 
         private void Refresh(object sender, EventArgs e)
         {
-            Networking.GetUserDetails(OnGetUserDetails);
+            if (Networking.LocalUser == null)
+                Networking.GetUserDetails(OnGetUserDetails);
+            else
+                Networking.GetGames<Game>(OnGetGames);
+
         }
         private void CreateGame(object sender, EventArgs e)
         {
@@ -92,7 +87,7 @@ namespace Assassin
             else if (lst_Types.SelectedIndex == -1)
                 MessageBox.Show("Please select a game type!");
             else
-                Networking.CreateGame(txt_Name.Text, Networking.GameTypes[lst_Types.SelectedIndex].id);
+                Networking.CreateGame<Game>(txt_Name.Text, 0);
         }
 
         private void BindGameList()
@@ -105,15 +100,17 @@ namespace Assassin
             MyGames = new List<Game>();
             for (int i = 0; i < Networking.Games.Count; i++)
             {
+
+                bool isPlayingi = false;
                 //Check if the user is playing this game
                 for (int j = 0; j < Networking.LocalUser.joined_games.Count; j++)
                 {
                     if (Networking.LocalUser.joined_games[j].Equals(Networking.Games[i]))
-                        Networking.Games[i].isPlaying = true;
+                        isPlayingi = true;
                 }
 
                 bool isCreator = Networking.Games[i].creator.Equals(Networking.LocalUser);
-                sideInfo_Lobby.Append(isCreator ? "Creator\n" : (Networking.Games[i].isPlaying ? "Playing\n" : "\n"));
+                sideInfo_Lobby.Append(isCreator ? "Creator\n" : (isPlayingi ? "Playing\n" : "\n"));
 
 
                 if (Networking.Games[i].creator.Equals(Networking.LocalUser))
@@ -179,7 +176,16 @@ namespace Assassin
             string message;
             string query;
 
-            if (selected.isPlaying)
+
+            bool isPlayingi = false;
+            //Check if the user is playing this game
+            for (int j = 0; j < Networking.LocalUser.joined_games.Count; j++)
+            {
+                if (Networking.LocalUser.joined_games[j].Equals(selected))
+                    isPlayingi = true;
+            }
+
+            if (isPlayingi)
             {
                 query = "?ContinueGame=" + selected.id;
                 message = String.Format("\nCreator: {0}\nPlayers: {1}/{2}\nStarted: {3}\nGame Type: {4}\n\n                   {5}",
@@ -187,7 +193,7 @@ namespace Assassin
                     selected.players.Count,
                     selected.maxplayers,
                     selected.time.ToString(),
-                    Networking.GameTypes[selected.gameType].name,
+                    selected.gameType,
                     "Continue This Game?");
             }
             else
@@ -198,7 +204,7 @@ namespace Assassin
                     selected.players.Count,
                     selected.maxplayers,
                     selected.time.ToString(),
-                    Networking.GameTypes[selected.gameType].name,
+                    selected.gameType,
                     "Join This Game?");
             }
 
@@ -277,12 +283,13 @@ namespace Assassin
         {
             if (MessageBox.Show("Are you sure you want to log out?", "Logging out", MessageBoxButton.OKCancel) == MessageBoxResult.OK)
             {
-                Networking.Apitoken = "";
-                //Erase the stored apitoken
-                StorageManager.SaveData("Apitoken.txt", "");
+                //Erase all the stored data for this user
+                Networking.Logout();
             }
             else
                 e.Cancel = true;
         }
+
+
     }
 }

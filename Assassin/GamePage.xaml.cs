@@ -72,16 +72,16 @@ namespace Assassin
             if (NavigationContext.QueryString.ContainsKey("JoinGame"))
             {
                 gameId = int.Parse(NavigationContext.QueryString["JoinGame"]);
-                CurrentGame = Networking.GetGameById(gameId);
+                CurrentGame = Networking.GetGameById_Local(gameId);
 
                 getName();
             }
             else if (NavigationContext.QueryString.ContainsKey("ContinueGame"))
             {
                 gameId = int.Parse(NavigationContext.QueryString["ContinueGame"]);
-                Networking.SetPlayers(StorageManager.LoadData(Networking.LocalUser.id + "-Players"));
-                CurrentPlayer = Networking.GetPlayerByGameId(gameId);
-                CurrentGame = Networking.GetGameById(gameId);
+
+                CurrentPlayer = Networking.GetPlayerByGameId_Local(gameId);
+                CurrentGame = Networking.GetGameById_Local(gameId);
 
                 lbl_MyName.Text = CurrentPlayer.name.ToString();
                 lbl_MyScore.Text = CurrentPlayer.score.ToString();
@@ -212,21 +212,25 @@ namespace Assassin
             }
             else
             {
-                photo = Networking.LocalUser.photo;
-                Networking.JoinGame(name, gameId, photo, OnJoinGame);
+                var dict = new Dictionary<string, object>();
+                dict["photo"] = Networking.LocalUser.photo;
+                Networking.JoinGame<Player>(name, gameId, dict, OnJoinGame);
             }
         }
 
         private void pct_Completed(object sender, PhotoResult Result)
         {
+            var dict = new Dictionary<string, object>();
+            dict["photo"] = "abcdefghijklmnopqrstuvwxyz012345";
+
             //TODO: Upload an actual photo and get its ID back
             //TODO: Check if a photo was actually chosen(May just default to the default photo if cancelled)
-            Networking.JoinGame(name, gameId, "abcdefghijklmnopqrstuvwxyz012345", OnJoinGame);
+            Networking.JoinGame<Player>(name, gameId, dict, OnJoinGame);
         }
 
         private void OnJoinGame(object sender, UploadStringCompletedEventArgs e)
         {
-            CurrentPlayer = Networking.GetPlayerByGameId(CurrentGame.id);
+            CurrentPlayer = Networking.GetPlayerByGameId_Local(CurrentGame.id);
             if (CurrentPlayer != null)
             {
                 lbl_MyName.Text = CurrentPlayer.name.ToString();
@@ -234,7 +238,6 @@ namespace Assassin
                 lbl_MyTime.Text = CurrentPlayer.time.ToString();
 
                 //Save the list of players for later
-                StorageManager.SaveData(Networking.LocalUser.id + "-Players", Networking.GetPlayersJson());
             }
             else
                 MessageBox.Show("Failed to load the player");
